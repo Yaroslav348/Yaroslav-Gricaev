@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import QWidget, QApplication, QMainWindow
 class MyWidget(QMainWindow):
     def __init__(self):
         super().__init__()
-        uic.loadUi('UI.ui', self)
+        uic.loadUi('/01.ui', self)
         self.do_paint = False
         self.btn.clicked.connect(self.repaint())
 
