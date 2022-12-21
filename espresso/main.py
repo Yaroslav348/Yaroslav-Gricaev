@@ -9,6 +9,7 @@ class Example(QMainWindow):
         super().__init__()
         uic.loadUi('UI.ui', self)
         self.connection = sqlite3.connect("coffee.sqlite")
+        self.select_data()
         self.btn.clicked.connect(self.select_data)
         self.btn_2.clicked.connect(self.addEditForm)
         
@@ -17,7 +18,7 @@ class Example(QMainWindow):
         res = cur.execute(""" 
                 SELECT * FROM coffee
                 """).fetchall()
-        self.tableWidget.setColumnCount(5)
+        self.tableWidget.setColumnCount(7)
         self.tableWidget.setRowCount(0)
         self.names = list(map(lambda x: x[0], cur.description))
         for i, row in enumerate(res):
@@ -37,19 +38,22 @@ class addEditCoffee(QDialog):
     def __init__(self):
         QDialog.__init__(self)
         uic.loadUi('addEditCoffeeForm.ui', self)
-        self.add= True
+        self.isAdd= True
+        self.lineEdits = ['lineEdit_' + str(i) for i in range(1, 7)]
         self.id = ex.tableWidget.rowCount() + 1
         self.label_edit.setVisible(False)
         self.lineEdit_edit.setVisible(False)
-        self.btn.clicked.connect(self.addEdit)
+        self.btn_2.setVisible(False)
+        self.btn.clicked.connect(self.add)
+        self.btn_2.clicked.connect(self.findByTitle)
         self.comboBox.currentTextChanged.connect(self.change)
 
-    def addEdit(self):
-        lineEdits = ['lineEdit_' + str(i) for i in range(1, 7)]
-        text = [self.id]
+    def add(self):
+        text = list()
         self.id += 1
-        if self.add:
-            for line in lineEdits:
+        if self.isAdd:
+            text.append(self.id)
+            for line in self.lineEdits:
                 string = eval('self.{}.text()'.format(line))
                 eval('self.{}.setText("")'.format(line))
                 if string == '':
@@ -63,32 +67,51 @@ class addEditCoffee(QDialog):
                 """, text)
             ex.connection.commit()
         else:
-            edit_title = self.lineEdit_edit.text()
-            for line in lineEdits:
+            for line in self.lineEdits:
                 string = eval('self.{}.text()'.format(line))
                 eval('self.{}.setText("")'.format(line))
                 if string == '':
                     text.append(None)
                 else:
                     text.append(string)
+            text.append(self.lineEdit_edit.text().capitalize())
             text = tuple(text)
             cur = ex.connection.cursor()
             cur.execute(""" 
-                INSERT INTO coffee VALUES(?,?,?,?,?,?,?)
+                UPDATE coffee
+                SET title = ?,
+                roast = ?,
+                'ground/in grains' = ?,
+                description = ?,
+                price = ?,
+                'serving size (oz)' = ?
+                WHERE title = ?
                 """, text)
             ex.connection.commit()
 
     def change(self):
         if self.comboBox.currentText() == 'Add':
-            self.add= True
+            self.isAdd= True
             self.label_edit.setVisible(False)
             self.lineEdit_edit.setVisible(False)
+            self.btn_2.setVisible(False)
             self.btn.setText('Add')
         else:
-            self.add= False
+            self.isAdd= False
             self.label_edit.setVisible(True)
             self.lineEdit_edit.setVisible(True)
+            self.btn_2.setVisible(True)
             self.btn.setText('Edit')
+
+    def findByTitle(self):
+        title = self.lineEdit_edit.text().capitalize()
+        cur = ex.connection.cursor()
+        res = cur.execute(""" 
+                    SELECT * FROM coffee
+                    WHERE title = ?
+                """, (title,)).fetchone()
+        for i in range(6):
+            eval('self.{}.setText("{}")'.format(self.lineEdits[i], res[i + 1]))
 
 
 
