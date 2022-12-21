@@ -7,8 +7,8 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QTableWidgetItem, QDialog
 class Example(QMainWindow):
     def __init__(self):
         super().__init__()
-        uic.loadUi('UI.ui', self)
-        self.connection = sqlite3.connect("coffee.sqlite")
+        uic.loadUi('UI/UI.ui', self)
+        self.connection = sqlite3.connect("data/coffee.sqlite")
         self.select_data()
         self.btn.clicked.connect(self.select_data)
         self.btn_2.clicked.connect(self.addEditForm)
@@ -37,7 +37,7 @@ class Example(QMainWindow):
 class addEditCoffee(QDialog):
     def __init__(self):
         QDialog.__init__(self)
-        uic.loadUi('addEditCoffeeForm.ui', self)
+        uic.loadUi('UI/addEditCoffeeForm.ui', self)
         self.isAdd= True
         self.lineEdits = ['lineEdit_' + str(i) for i in range(1, 7)]
         self.id = ex.tableWidget.rowCount() + 1

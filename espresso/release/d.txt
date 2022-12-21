@@ -1,0 +1,4 @@
+libralies:
+sqlite
+sys
+PyGt5
